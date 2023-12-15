@@ -117,7 +117,9 @@ jobs:
           path: "${{ env.RELEASE_ID }}"
       - id: files
         run: |
-          echo "FILES=$(ls -1 $RELEASE_ID/**/nsq-*.tar.gz)" >> $GITHUB_OUTPUT
+          echo "FILES<<EOF" >> $GITHUB_OUTPUT
+          echo "$(ls -1 $RELEASE_ID/**/nsq-*.tar.gz)" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
