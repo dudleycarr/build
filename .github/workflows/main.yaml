@@ -12,28 +12,28 @@ jobs:
       release-id: "${{ steps.release-id.outputs.ID }}"
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
           repository: dudleycarr/nsq
           ref: fix-docker-build
-      - run: |
+      - name: Create commit cache directory
+        run: |
           mkdir -p commits-cache
-      # Get the last most recent repo commit
       - name: Get latest commit to main branch
         id: latest-commit
         run: |
-          echo "::set-output name=COMMIT_SHA::$(git rev-parse HEAD)"
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - uses: actions/cache/restore@v3
         id: cache
         with:
           lookup-only: true
           path: commits-cache
           key: ${{ steps.latest-commit.outputs.COMMIT_SHA }}.txt
-      - id: release-id
+      - name: Generate release identifier from date
+        id: release-id
         run: |
-          echo "::set-output name=ID::$(date +'%Y%m%d')"
+          echo "ID=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
 
   build-binaries:
    if: ${{ needs.git-activity.outputs.new-commits == 'true' }}
@@ -41,12 +41,9 @@ jobs:
    runs-on: ubuntu-latest
    strategy:
      matrix:
-       go-version: ['1.21']
-       arch: [arm64]
-       os: [linux]
-#       go-version: ['1.20', '1.21']
-#       arch: [arm64, amd64]
-#       os: [linux, darwin, freebsd, windows]
+        go-version: ['1.20', '1.21']
+        arch: [arm64, amd64]
+        os: [linux, darwin, freebsd, windows]
    env:
      RELEASE_ID: "${{ needs.git-activity.outputs.release-id }}"
      version: "go${{ matrix.go-version}}-${{ matrix.os }}-${{ matrix.arch }}"
@@ -76,7 +73,11 @@ jobs:
          path: ${{ env.RELEASE_ID }}/nsq-*.tar.gz
 
   docker:
+    if: ${{ needs.git-activity.outputs.new-commits == 'true' }}
+    needs: [git-activity]
     runs-on: ubuntu-latest
+    env:
+      RELEASE_ID: "${{ needs.git-activity.outputs.release-id }}"
     steps:
       - name: Checkout NSQ
         uses: actions/checkout@v4
@@ -101,10 +102,10 @@ jobs:
           push: true
           tags: |
             ghcr.io/dudleycarr/nsq:latest
-            ghcr.io/dudleycarr/nsq:1.0.0
+            ghcr.io/dudleycarr/nsq:${{ env.RELEASE_ID }}
 
   release:
-    needs: [git-activity, build-binaries]
+    needs: [git-activity, build-binaries, docker]
     runs-on: ubuntu-latest
     env:
       RELEASE_ID: "${{ needs.git-activity.outputs.release-id }}"
@@ -116,13 +117,17 @@ jobs:
           path: "${{ env.RELEASE_ID }}"
       - id: files
         run: |
-          echo "::set-output name=FILES::$(ls $RELEASE_ID/**/nsq-*.tar.gz)"
+          echo "FILES=$(ls $RELEASE_ID/**/nsq-*.tar.gz)" >> $GITHUB_OUTPUT
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: "${{ env.RELEASE_ID }}"
-          body: "Commits: https://github.com/dudleycarr/nsq/commits/${{ needs.git-activity.outputs
-          .latest-commit}}"
+          body: |
+            ### Commits
+            https://github.com/dudleycarr/nsq/commits/${{ needs.git-activity.outputs.latest-commit}}"
+            
+            ### Docker Images
+            ghcr.io/dudleycarr/nsq:$${{ env.RELEASE_ID }}
           files: "${{ steps.files.outputs.FILES }}"
 
   cache-commit-sha:
