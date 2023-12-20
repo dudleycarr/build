@@ -11,15 +11,18 @@ jobs:
   stable:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout build repo
+        uses: actions/checkout@v4
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ env.NSQ_BRANCH }}
+          path: nsq
       - name: Get latest stable release tag
         id: latest-release
         run: |
-          echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "cd nsq && TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
       - name: Build latest stable release
         uses: ./.github/workflows/build.yml
         with:
@@ -29,15 +32,18 @@ jobs:
   nightly:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout build repo
+        uses: actions/checkout@v4
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ env.NSQ_BRANCH }}
+          path: nsq
       - name: Get latest commit to main branch
         id: latest-commit
         run: |
-          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "cd nsq && COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Generate release identifier from date
         id: release-id
         run: |
