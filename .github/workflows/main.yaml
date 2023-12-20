@@ -21,7 +21,7 @@ jobs:
         run: |
           echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
       - name: Build latest stable release
-        uses: ./.github/workflows/build.yaml
+        uses: ./.github/workflows/build.yml
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ steps.latest-release.output.TAG }}
@@ -43,7 +43,7 @@ jobs:
         run: |
           echo "RELEASE_ID=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
       - name: Build latest stable release
-        uses: ./.github/workflows/build.yaml
+        uses: ./.github/workflows/build.yml
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ env.REF }}
