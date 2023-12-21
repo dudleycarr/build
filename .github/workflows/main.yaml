@@ -17,8 +17,8 @@ jobs:
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
-          repository: ${{ env.NSQ_REPOSITORY }}
-          ref: ${{ env.NSQ_BRANCH }}
+          repository: nsqio/nsq
+          ref: master
       - name: Get latest stable release tag
         id: latest-release
         run: |
@@ -60,4 +60,4 @@ jobs:
       with:
         repository: ${{ needs.nightly-meta.outputs.NSQ_REPOSITORY }}
         ref: ${{ needs.nightly-meta.outputs.COMMIT_SHA }}
-        release: needs.nightly-meta.outputs.RELEASE_ID }}
+        release: ${{ needs.nightly-meta.outputs.RELEASE_ID }}
