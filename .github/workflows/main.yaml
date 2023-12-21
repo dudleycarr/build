@@ -14,11 +14,15 @@ jobs:
       TAG: ${{ steps.latest-release.outputs.TAG }}
     runs-on: ubuntu-latest
     steps:
+      # Forks for nsqio/nsq don't have tags. Always use the official repository to find
+      # the most recent release.
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
           repository: nsqio/nsq
-          ref: master
+      - name: Get Tags
+        run: |
+          git fetch --tags origin
       - name: Get latest stable release tag
         id: latest-release
         run: |
