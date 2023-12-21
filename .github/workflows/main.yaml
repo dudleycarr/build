@@ -10,6 +10,7 @@ env:
 jobs:
   stable-meta:
     outputs:
+      NSQ_REPOSITORY: ${{ steps.latest-release.outputs.NSQ_REPOSITORY }}
       TAG: ${{ steps.latest-release.outputs.TAG }}
     runs-on: ubuntu-latest
     steps:
@@ -18,22 +19,23 @@ jobs:
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ env.NSQ_BRANCH }}
-          path: nsq
       - name: Get latest stable release tag
         id: latest-release
         run: |
-          echo "cd nsq && TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "NSQ_REPOSITORY=$NSQ_REPOSITORY" >> $GITHUB_OUTPUT
+          echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
   stable:
     needs: [stable-meta]
     name: Build latest stable release
     uses: ./.github/workflows/build.yml
     with:
-      repository: ${{ env.NSQ_REPOSITORY }}
+      repository: ${{ needs.stable-meta.outputs.NSQ_REPOSITORY }}
       ref: ${{ needs.stable-meta.outputs.TAG }}
       release: ${{ needs.stable-meta.outputs.TAG }}
   nightly-meta:
     outputs:
-      COMMIT_SHA: ${{ steps.release-id.outputs.COMMIT_SHA }}
+      NSQ_REPOSITORY: ${{ steps.latest-commit.outputs.NSQ_REPOSITORY }}
+      COMMIT_SHA: ${{ steps.latest-commit.outputs.COMMIT_SHA }}
       RELEASE_ID: ${{ steps.release-id.outputs.RELEASE_ID }}
     runs-on: ubuntu-latest
     steps:
@@ -42,11 +44,11 @@ jobs:
         with:
           repository: ${{ env.NSQ_REPOSITORY }}
           ref: ${{ env.NSQ_BRANCH }}
-          path: nsq
       - name: Get latest commit to main branch
         id: latest-commit
         run: |
-          echo "cd nsq && COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "NSQ_REPOSITORY=$NSQ_REPOSITORY" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - name: Generate release identifier from date
         id: release-id
         run: |
@@ -56,6 +58,6 @@ jobs:
       name: Build latest stable release
       uses: ./.github/workflows/build.yml
       with:
-        repository: ${{ env.NSQ_REPOSITORY }}
+        repository: ${{ needs.nightly-meta.outputs.NSQ_REPOSITORY }}
         ref: ${{ needs.nightly-meta.outputs.COMMIT_SHA }}
         release: needs.nightly-meta.outputs.RELEASE_ID }}
