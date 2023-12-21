@@ -106,8 +106,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/nsq:latest
-            ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/nsq:${{ inputs.release }}
+            ghcr.io/${{ github.repository_owner}}/nsq:latest
+            ghcr.io/${{ github.repository_owner }}/nsq:${{ inputs.release }}
 
   release:
     needs: [status, build-binaries, docker]
@@ -132,7 +132,7 @@ jobs:
             https://github.com/${{ inputs.repository }}/commits/${{ inputs.ref }}
             
             ### Docker Images
-            ghcr.io/${{ env.GITHUB_REPOSITORY_OWNER }}/nsq:${{ inputs.release }}
+            ghcr.io/${{ github.repository_owner }}/nsq:${{ inputs.release }}
           files: "${{ steps.files.outputs.FILES }}"
 
   cache-commit-sha:
