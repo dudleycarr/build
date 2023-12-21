@@ -16,8 +16,8 @@ jobs:
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
-          repository: $NSQ_REPOSITORY
-          ref: $NSQ_BRANCH
+          repository: "$NSQ_REPOSITORY"
+          ref: "$NSQ_BRANCH"
           path: nsq
       - name: Get latest stable release tag
         id: latest-release
@@ -28,7 +28,7 @@ jobs:
     name: Build latest stable release
     uses: ./.github/workflows/build.yml
     with:
-      repository: $NSQ_REPOSITORY
+      repository: "$NSQ_REPOSITORY"
       ref: ${{ needs.stable-meta.outputs.TAG }}
       release: ${{ needs.stable-meta.outputs.TAG }}
   nightly-meta:
@@ -40,8 +40,8 @@ jobs:
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
-          repository: $NSQ_REPOSITORY
-          ref: $NSQ_BRANCH
+          repository: "$NSQ_REPOSITORY"
+          ref: "$NSQ_BRANCH"
           path: nsq
       - name: Get latest commit to main branch
         id: latest-commit
@@ -56,6 +56,6 @@ jobs:
       name: Build latest stable release
       uses: ./.github/workflows/build.yml
       with:
-        repository: $NSQ_REPOSITORY
+        repository: "$NSQ_REPOSITORY"
         ref: ${{ needs.nightly-meta.outputs.COMMIT_SHA }}
         release: needs.nightly-meta.outputs.RELEASE_ID }}
