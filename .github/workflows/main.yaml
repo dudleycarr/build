@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: nsqio/nsq
+          fetch-depth: 0
       - name: Get Tags
         run: |
           git fetch --tags origin
