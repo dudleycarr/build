@@ -8,11 +8,11 @@ env:
   NSQ_REPOSITORY: dudleycarr/nsq
   NSQ_BRANCH: fix-docker-build
 jobs:
-  stable:
+  stable-meta:
+    outputs:
+      TAG: ${{ steps.latest-release.outputs.TAG }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout build repo
-        uses: actions/checkout@v4
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
@@ -23,17 +23,20 @@ jobs:
         id: latest-release
         run: |
           echo "cd nsq && TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
-      - name: Build latest stable release
-        uses: ./.github/workflows/build.yml
-        with:
-          repository: ${{ env.NSQ_REPOSITORY }}
-          ref: ${{ steps.latest-release.output.TAG }}
-          release: ${{ steps.latest-release.output.TAG }}
-  nightly:
+  stable:
+    needs: [stable-meta]
+    name: Build latest stable release
+    uses: ./.github/workflows/build.yml
+    with:
+      repository: ${{ env.NSQ_REPOSITORY }}
+      ref: ${{ needs.stable-meta.outputs.TAG }}
+      release: ${{ needs.stable-meta.outputs.TAG }}
+  nightly-meta:
+    outputs:
+      COMMIT_SHA: ${{ steps.release-id.outputs.COMMIT_SHA }}
+      RELEASE_ID: ${{ steps.release-id.outputs.RELEASE_ID }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout build repo
-        uses: actions/checkout@v4
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
@@ -48,9 +51,11 @@ jobs:
         id: release-id
         run: |
           echo "RELEASE_ID=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
-      - name: Build latest stable release
-        uses: ./.github/workflows/build.yml
-        with:
-          repository: ${{ env.NSQ_REPOSITORY }}
-          ref: ${{ env.REF }}
-          release: ${{ env.RELEASE }}
+  nightly:
+      needs: [nightly-meta]
+      name: Build latest stable release
+      uses: ./.github/workflows/build.yml
+      with:
+        repository: ${{ env.NSQ_REPOSITORY }}
+        ref: ${{ needs.nightly-meta.outputs.COMMIT_SHA }}
+        release: needs.nightly-meta.outputs.RELEASE_ID }}

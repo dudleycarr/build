@@ -32,7 +32,7 @@ jobs:
 
   build-binaries:
     if: ${{ needs.status.outputs.not-built }} == 'true'
-    needs: [check-cache]
+    needs: [status]
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -78,8 +78,8 @@ jobs:
           path: ${{ env.RELEASE_ID }}/nsq-*.tar.gz
 
   docker:
-    if: ${{ needs.check-cache.outputs.not-cached }} == 'true'
-    needs: [check-cache]
+    if: ${{ needs.status.outputs.not-built }} == 'true'
+    needs: [status]
     runs-on: ubuntu-latest
     env:
       RELEASE_ID: "${{ inputs.release }}"
@@ -136,7 +136,7 @@ jobs:
           files: "${{ steps.files.outputs.FILES }}"
 
   cache-commit-sha:
-    needs: [check-cache, release]
+    needs: [status, release]
     runs-on: ubuntu-latest
     steps:
       - run: |
