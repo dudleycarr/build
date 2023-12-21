@@ -12,30 +12,31 @@ jobs:
     outputs:
       NSQ_REPOSITORY: ${{ steps.latest-release.outputs.NSQ_REPOSITORY }}
       TAG: ${{ steps.latest-release.outputs.TAG }}
+      COMMIT_SHA: ${{ steps.latest-release.outputs.COMMIT_SHA }}
     runs-on: ubuntu-latest
     steps:
-      # Forks for nsqio/nsq don't have tags. Always use the official repository to find
-      # the most recent release.
       - name: Checkout NSQ
         uses: actions/checkout@v4
         with:
-          repository: nsqio/nsq
+          repository: ${{ env.NSQ_REPOSITORY }}
           fetch-depth: 0
       - name: Get Tags
         run: |
-          git fetch --tags origin
+          git remote add upstream https://github.com/nsqio/nsq
+          git fetch --tags upstream
       - name: Get latest stable release tag
         id: latest-release
         run: |
           echo "NSQ_REPOSITORY=$NSQ_REPOSITORY" >> $GITHUB_OUTPUT
           echo "TAG=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
+          echo "COMMIT_SHA=$(git rev-list --tags --max-count=1)" >> $GITHUB_OUTPUT
   stable:
     needs: [stable-meta]
     name: Build latest stable release
     uses: ./.github/workflows/build.yml
     with:
       repository: ${{ needs.stable-meta.outputs.NSQ_REPOSITORY }}
-      ref: ${{ needs.stable-meta.outputs.TAG }}
+      ref: ${{ needs.stable-meta.outputs.COMMIT_SHA }}
       release: ${{ needs.stable-meta.outputs.TAG }}
   nightly-meta:
     outputs:
@@ -60,7 +61,7 @@ jobs:
           echo "RELEASE_ID=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
   nightly:
       needs: [nightly-meta]
-      name: Build latest stable release
+      name: Build nightly release
       uses: ./.github/workflows/build.yml
       with:
         repository: ${{ needs.nightly-meta.outputs.NSQ_REPOSITORY }}
