@@ -17,7 +17,7 @@ on:
 jobs:
   status:
     outputs:
-      not-built: "${{ !steps.cache.outputs.cache-hit }}"
+      built: "${{ steps.cache.outputs.cache-hit }}"
     runs-on: ubuntu-latest
     steps:
       - name: Create commit cache directory
@@ -31,7 +31,7 @@ jobs:
           key: ${{ inputs.ref }}.txt
 
   build-binaries:
-    if: ${{ needs.status.outputs.not-built }} == 'true'
+    if: ${{ needs.status.outputs.built }} == 'false'
     needs: [status]
     runs-on: ubuntu-latest
     strategy:
@@ -81,7 +81,7 @@ jobs:
           path: ${{ env.RELEASE_ID }}/nsq-*.tar.gz
 
   docker:
-    if: ${{ needs.status.outputs.not-built }} == 'true'
+    if: ${{ needs.status.outputs.built }} == 'false'
     needs: [status]
     runs-on: ubuntu-latest
     env:
