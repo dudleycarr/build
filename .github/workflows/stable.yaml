@@ -6,7 +6,7 @@ permissions:
   packages: write
 env:
   NSQ_REPOSITORY: ${{ vars.REPOSITORY != '' && vars.REPOSITORY || 'nsqio/nsq' }}
-  NSQ_BRANCH: ${{ vars.NSQ_BRANCH != '' && vars.BRANCH || 'master' }}
+  NSQ_BRANCH: ${{ vars.BRANCH != '' && vars.BRANCH || 'master' }}
 jobs:
   stable-meta:
     outputs:
