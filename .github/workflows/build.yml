@@ -92,6 +92,10 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
+      - name: Remove nsswitch.conf line
+        run: |
+          grep -v "nsswitch.conf" Dockerfile > Dockerfile.mod
+          mv Dockerfile.mod Dockerfile
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
